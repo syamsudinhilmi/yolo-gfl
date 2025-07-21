@@ -1,0 +1,37 @@
+splits:
+  train:
+    total_instances: 4812
+    classes:
+      Fire:
+        count: 2978
+        percentage: 61.89%
+      Smoke:
+        count: 1834
+        percentage: 38.11%
+  val:
+    total_instances: 1580
+    classes:
+      Fire:
+        count: 963
+        percentage: 60.95%
+      Smoke:
+        count: 617
+        percentage: 39.05%
+  test:
+    total_instances: 1586
+    classes:
+      Fire:
+        count: 897
+        percentage: 56.56%
+      Smoke:
+        count: 689
+        percentage: 43.44%
+combined:
+  total_instances: 7978
+  classes:
+    Fire:
+      count: 4838
+      percentage: 60.64%
+    Smoke:
+      count: 3140
+      percentage: 39.36%

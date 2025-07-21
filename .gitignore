@@ -1,0 +1,8 @@
+# Ignore dataset/HOME-FIRE folder
+dataset/HOME-FIRE/
+
+# Ignore test/output folder
+test/output/
+
+# Ignore PyCharm project configuration
+.idea/
