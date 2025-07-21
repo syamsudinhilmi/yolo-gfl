@@ -151,38 +151,40 @@ def process_image(model, image_info, model_config, output_dir, stats):
     return inference_time
 
 
-def calculate_fps(model, model_config, test_images, warmup=10, runs=100):
-    """Calculate FPS (Frames Per Second) for the model"""
-    print(f"\nCalculating FPS for {model_config['name']}...")
+def calculate_fps(model, model_config, test_images):
+    """Calculate FPS (Frames Per Second) for the model using entire test set"""
+    print(f"\nCalculating FPS for {model_config['name']} using entire test set...")
 
-    # Warmup runs
-    for _ in range(warmup):
-        for image_info in test_images[:5]:  # Use first 5 images for warmup
-            try:
-                image = cv2.imread(image_info['image_path'])
-                if image is not None:
-                    _ = model(image, conf=model_config['conf_threshold'], verbose=False)
-            except:
-                pass
+    # Warmup with first 5 images
+    for image_info in test_images[:5]:
+        try:
+            image = cv2.imread(image_info['image_path'])
+            if image is not None:
+                _ = model(image, conf=model_config['conf_threshold'], verbose=False)
+        except:
+            pass
 
-    # Actual FPS measurement
+    # Process all images once
     total_time = 0
-    for _ in tqdm(range(runs), desc="FPS Test"):
-        for image_info in test_images[:5]:  # Use first 5 images for consistent measurement
-            try:
-                image = cv2.imread(image_info['image_path'])
-                if image is not None:
-                    start_time = time.time()
-                    _ = model(image, conf=model_config['conf_threshold'], verbose=False)
-                    total_time += time.time() - start_time
-            except:
-                pass
+    processed_images = 0
+
+    for image_info in tqdm(test_images, desc="FPS Test"):
+        try:
+            image = cv2.imread(image_info['image_path'])
+            if image is not None:
+                start_time = time.time()
+                _ = model(image, conf=model_config['conf_threshold'], verbose=False)
+                total_time += time.time() - start_time
+                processed_images += 1
+        except Exception as e:
+            print(f"Error processing image {image_info['name']} for FPS test: {str(e)}")
 
     if total_time > 0:
-        fps = (runs * 5) / total_time  # 5 images per run
+        fps = processed_images / total_time
     else:
         fps = 0
 
+    print(f"  Processed {processed_images} images in {total_time:.2f} seconds")
     print(f"  FPS: {fps:.2f}")
     return fps
 
