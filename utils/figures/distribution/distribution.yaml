@@ -1,37 +1,60 @@
-splits:
-  train:
-    total_instances: 4812
+class_distribution:
+  splits:
+    train:
+      total_instances: 4899
+      classes:
+        Fire:
+          count: 2978
+          percentage: 60.79%
+        Smoke:
+          count: 1834
+          percentage: 37.44%
+        Background:
+          count: 87
+          percentage: 1.78%
+    val:
+      total_instances: 1613
+      classes:
+        Fire:
+          count: 963
+          percentage: 59.70%
+        Smoke:
+          count: 617
+          percentage: 38.25%
+        Background:
+          count: 33
+          percentage: 2.05%
+    test:
+      total_instances: 1601
+      classes:
+        Fire:
+          count: 897
+          percentage: 56.03%
+        Smoke:
+          count: 689
+          percentage: 43.04%
+        Background:
+          count: 15
+          percentage: 0.94%
+  combined:
+    total_instances: 8113
     classes:
       Fire:
-        count: 2978
-        percentage: 61.89%
+        count: 4838
+        percentage: 59.63%
       Smoke:
-        count: 1834
-        percentage: 38.11%
-  val:
-    total_instances: 1580
-    classes:
-      Fire:
-        count: 963
-        percentage: 60.95%
-      Smoke:
-        count: 617
-        percentage: 39.05%
-  test:
-    total_instances: 1586
-    classes:
-      Fire:
-        count: 897
-        percentage: 56.56%
-      Smoke:
-        count: 689
-        percentage: 43.44%
-combined:
-  total_instances: 7978
-  classes:
-    Fire:
-      count: 4838
-      percentage: 60.64%
-    Smoke:
-      count: 3140
-      percentage: 39.36%
+        count: 3140
+        percentage: 38.70%
+      Background:
+        count: 135
+        percentage: 1.66%
+annotation_quality:
+  splits:
+    train:
+      invalid_annotations: 0
+    val:
+      invalid_annotations: 0
+    test:
+      invalid_annotations: 0
+  combined:
+    invalid_annotations: 0

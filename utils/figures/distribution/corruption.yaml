@@ -1,0 +1,61 @@
+splits:
+  train:
+    total_files: 3900
+    file_status:
+      normal:
+        count: 3900
+        percentage: 100.00%
+      corrupted_images:
+        count: 0
+        percentage: 0.00%
+      corrupted_annotations:
+        count: 0
+        percentage: 0.00%
+      missing_annotations:
+        count: 0
+        percentage: 0.00%
+  val:
+    total_files: 1300
+    file_status:
+      normal:
+        count: 1300
+        percentage: 100.00%
+      corrupted_images:
+        count: 0
+        percentage: 0.00%
+      corrupted_annotations:
+        count: 0
+        percentage: 0.00%
+      missing_annotations:
+        count: 0
+        percentage: 0.00%
+  test:
+    total_files: 1300
+    file_status:
+      normal:
+        count: 1300
+        percentage: 100.00%
+      corrupted_images:
+        count: 0
+        percentage: 0.00%
+      corrupted_annotations:
+        count: 0
+        percentage: 0.00%
+      missing_annotations:
+        count: 0
+        percentage: 0.00%
+combined:
+  total_files: 6500
+  file_status:
+    normal:
+      count: 6500
+      percentage: 100.00%
+    corrupted_images:
+      count: 0
+      percentage: 0.00%
+    corrupted_annotations:
+      count: 0
+      percentage: 0.00%
+    missing_annotations:
+      count: 0
+      percentage: 0.00%
