@@ -17,10 +17,6 @@ YOLO-GFL is an optimized YOLO architecture that incorporates GhostNet-based modu
 ### Dataset Information
 - **Source**: [PENG BO Home Fire Dataset](https://github.com/PengBo0/Home-fire-dataset)
 - **Baseline Model**: [YOLOv12](https://github.com/sunsmarterjie/yolov12)
-- **Test Set**: 1,300 images with 1,601 total instances
-  - Fire instances: 897
-  - Smoke instances: 689
-  - Background instances: 15
 
 ### Model Comparison
 
