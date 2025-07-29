@@ -6,13 +6,15 @@
 
 YOLO-GFL is an optimized YOLO architecture that incorporates GhostNet-based modules for efficient indoor fire and smoke detection. This implementation provides a lightweight yet accurate solution for real-time fire safety monitoring systems.
 
-## Key Features
+## Key Advantages
 
-- **Lightweight Architecture**: 35% smaller model size compared to YOLOv12
-- **Efficient Computation**: 21% reduction in computational complexity
-- **Real-time Performance**: Optimized for edge deployment
-- **High Accuracy**: Maintains competitive detection performance
-- **Specialized Focus**: Designed specifically for indoor fire and smoke detection
+| Aspect          | YOLO-GFL Advantage                 |
+|-----------------|------------------------------------|
+| **Model Size**  | 35% smaller (3.36 MB vs 5.21 MB)   |
+| **Computation** | 21% fewer GFLOPs (4.6 vs 5.8)      |
+| **Parameters**  | 36% fewer parameters               |
+| **Deployment**  | Better suited for edge devices     |
+| **Accuracy**    | Competitive performance maintained |
 
 ## Model Specifications
 
@@ -149,25 +151,6 @@ YOLO-GFL is an optimized YOLO architecture that incorporates GhostNet-based modu
 </tr>
 </table>
 
-## Technical Implementation
-
-The YOLO-GFL architecture integrates GhostNet-based modules to achieve model compression while maintaining detection accuracy. Key technical features include:
-
-- **GhostNet Integration**: Efficient feature extraction with reduced computational overhead
-- **Optimized Architecture**: Streamlined layer structure for faster inference
-- **Memory Efficiency**: Reduced parameter count for edge deployment
-- **Specialized Training**: Fine-tuned for fire and smoke detection scenarios
-
-## Key Advantages
-
-| Aspect          | YOLO-GFL Advantage                 |
-|-----------------|------------------------------------|
-| **Model Size**  | 35% smaller (3.36 MB vs 5.21 MB)   |
-| **Computation** | 21% fewer GFLOPs (4.6 vs 5.8)      |
-| **Parameters**  | 36% fewer parameters               |
-| **Deployment**  | Better suited for edge devices     |
-| **Accuracy**    | Competitive performance maintained |
-
 ## Acknowledgments
 
 - **Dataset**: [PENG BO Home-Fire Dataset](https://github.com/PengBo0/Home-fire-dataset)
@@ -188,7 +171,3 @@ If you use YOLO-GFL in your research, please cite:
 ```
 
 ---
-
-<div align="center">
-<strong>Built for Fire Safety • Optimized for Performance • Powered by GhostNet</strong>
-</div>
