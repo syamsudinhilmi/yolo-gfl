@@ -1,0 +1,66 @@
+YOLO-GFL:
+  imgtest_1:
+    fire_count: 1
+    inference_time: 0.1060018539428711
+    smoke_count: 0
+  imgtest_2:
+    fire_count: 1
+    inference_time: 0.013001680374145508
+    smoke_count: 0
+  imgtest_3:
+    fire_count: 1
+    inference_time: 0.014008522033691406
+    smoke_count: 0
+  imgtest_4:
+    fire_count: 1
+    inference_time: 0.013039112091064453
+    smoke_count: 0
+  imgtest_5:
+    fire_count: 1
+    inference_time: 0.01307535171508789
+    smoke_count: 0
+  imgtest_6:
+    fire_count: 1
+    inference_time: 0.015000343322753906
+    smoke_count: 2
+  imgtest_7:
+    fire_count: 1
+    inference_time: 0.013275861740112305
+    smoke_count: 0
+  imgtest_8:
+    fire_count: 4
+    inference_time: 0.012624740600585938
+    smoke_count: 0
+YOLOv12:
+  imgtest_1:
+    fire_count: 1
+    inference_time: 1.8364746570587158
+    smoke_count: 0
+  imgtest_2:
+    fire_count: 1
+    inference_time: 0.018001794815063477
+    smoke_count: 0
+  imgtest_3:
+    fire_count: 0
+    inference_time: 0.018001556396484375
+    smoke_count: 0
+  imgtest_4:
+    fire_count: 1
+    inference_time: 0.01806044578552246
+    smoke_count: 0
+  imgtest_5:
+    fire_count: 1
+    inference_time: 0.01861715316772461
+    smoke_count: 0
+  imgtest_6:
+    fire_count: 0
+    inference_time: 0.017998218536376953
+    smoke_count: 1
+  imgtest_7:
+    fire_count: 1
+    inference_time: 0.018050432205200195
+    smoke_count: 0
+  imgtest_8:
+    fire_count: 1
+    inference_time: 0.019011974334716797
+    smoke_count: 0

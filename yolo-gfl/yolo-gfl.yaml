@@ -1,6 +1,5 @@
 # YOLO GFL (GhostNet Fire Lightweight) Configuration
 # YOLOv12 Optimized using GhostNet-Based Architecture
-# Lightweight detection model with Ghost convolutions for mobile deployment
 
 # Parameters
 nc: 2  # number of classes

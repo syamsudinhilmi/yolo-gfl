@@ -26,7 +26,7 @@ def train_yolo(name: str):
     )
 
     # Export the model to ONNX format
-    path = model.export(format="onnx")
+    # path = model.export(format="onnx")
 
 if __name__ == "__main__":
     train_yolo('YOLO-GFL')

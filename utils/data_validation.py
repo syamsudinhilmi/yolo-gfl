@@ -1,10 +1,13 @@
 import os
 import random
+import shutil
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 from PIL import Image
+from sklearn.model_selection import train_test_split
 
 
 def load_yaml(yaml_path):
@@ -541,6 +544,15 @@ def analyze_dataset(config):
     num_samples = config['num_samples_per_split']
     output_dir = config['output_dir']
 
+    # First check and split dataset if needed
+    if not check_dataset_splitting(dataset_base):
+        print("Dataset not split yet. Performing splitting with ratio 60:20:20...")
+        if not split_dataset(dataset_base):
+            print("Failed to split dataset. Please check your dataset structure.")
+            return
+    else:
+        print("Dataset already split into train/val/test folders. Proceeding with analysis...")
+
     os.makedirs(output_dir, exist_ok=True)
 
     # Load YAML file to get class information
@@ -557,6 +569,7 @@ def analyze_dataset(config):
         split_path = os.path.join(dataset_base, split)
 
         if not os.path.exists(split_path):
+            print(f"Warning: Split folder '{split}' not found in dataset directory.")
             distributions[split] = {cls: 0 for cls in classes}
             background_counts[split] = 0
             invalid_annotations_counts[split] = 0
@@ -569,6 +582,8 @@ def analyze_dataset(config):
             }
             continue
 
+        print(f"\nAnalyzing {split} split...")
+
         # Get class distribution and background count
         dist, bg_count, invalid_annos = get_class_distribution(split_path, classes)
         distributions[split] = dist
@@ -579,25 +594,110 @@ def analyze_dataset(config):
         corrupted_images, corrupted_annotations, normal_count, missing_annotations = check_corrupted_files(split_path)
         corruption_stats[split] = {
             'corrupted_images': len(corrupted_images),
-            'corrupted_annotations': len(corrupted_annotations) + invalid_annos,  # Combine with invalid annotations
+            'corrupted_annotations': len(corrupted_annotations) + invalid_annos,
             'missing_annotations': missing_annotations,
             'normal': normal_count,
             'invalid_annotations': invalid_annos
         }
 
+        # Print summary for current split
+        print(f"Summary for {split}:")
+        print(f"- Normal files: {normal_count}")
+        print(f"- Corrupted images: {len(corrupted_images)}")
+        print(f"- Corrupted annotations: {len(corrupted_annotations)}")
+        print(f"- Invalid annotations: {invalid_annos}")
+        print(f"- Missing annotations: {missing_annotations}")
+        print(f"- Background images (no objects): {bg_count}")
+        print("Class distribution:")
+        for cls, count in dist.items():
+            print(f"  - {cls}: {count}")
+
     # Plot distributions (including background)
+    print("\nGenerating distribution plots...")
     plot_combined_distribution(distributions, background_counts, splits, classes, output_dir)
 
     # Plot corruption statistics
+    print("Generating corruption statistics plots...")
     plot_corruption_stats(corruption_stats, splits, output_dir)
 
     # Visualize samples
+    print("Generating sample visualizations...")
     visualize_samples(dataset_base, splits, classes, num_samples, output_dir)
 
     # Save statistics to YAML files
+    print("Saving statistics to YAML files...")
     save_distribution_stats(distributions, background_counts, invalid_annotations_counts, splits, classes, output_dir)
     save_corruption_stats(corruption_stats, splits, output_dir)
 
+    print("\nAnalysis completed successfully!")
+    print(f"Results saved to: {output_dir}")
+
+def check_dataset_splitting(dataset_base):
+    """Check if dataset is already split into train/val/test folders."""
+    required_folders = ['train', 'val', 'test']
+    for folder in required_folders:
+        if not os.path.exists(os.path.join(dataset_base, folder)):
+            return False
+    return True
+
+
+def split_dataset(dataset_base, split_ratio=(0.6, 0.2, 0.2)):
+    """Split dataset into train, val, test sets if not already split."""
+    # Check if dataset is already split
+    if check_dataset_splitting(dataset_base):
+        print("Dataset already split into train/val/test folders.")
+        return True
+
+    # Create necessary directories if they don't exist
+    os.makedirs(os.path.join(dataset_base, 'train', 'images'), exist_ok=True)
+    os.makedirs(os.path.join(dataset_base, 'train', 'labels'), exist_ok=True)
+    os.makedirs(os.path.join(dataset_base, 'val', 'images'), exist_ok=True)
+    os.makedirs(os.path.join(dataset_base, 'val', 'labels'), exist_ok=True)
+    os.makedirs(os.path.join(dataset_base, 'test', 'images'), exist_ok=True)
+    os.makedirs(os.path.join(dataset_base, 'test', 'labels'), exist_ok=True)
+
+    # Check if images and labels are in root directory (unsplit dataset)
+    root_images = os.path.join(dataset_base, 'images')
+    root_labels = os.path.join(dataset_base, 'labels')
+
+    if not os.path.exists(root_images) or not os.path.exists(root_labels):
+        print("No unsplit dataset found in root directory. Please check your dataset structure.")
+        return False
+
+    # Get all image files
+    image_files = [f for f in os.listdir(root_images) if f.endswith(('.jpg', '.jpeg', '.png'))]
+
+    if not image_files:
+        print("No images found in the dataset.")
+        return False
+
+    # Split into train, val, test
+    train_val, test = train_test_split(image_files, test_size=split_ratio[2], random_state=42)
+    train, val = train_test_split(train_val, test_size=split_ratio[1] / (split_ratio[0] + split_ratio[1]),
+                                  random_state=42)
+
+    # Function to copy files
+    def copy_files(files, split_name):
+        for file in files:
+            # Copy image
+            src_img = os.path.join(root_images, file)
+            dst_img = os.path.join(dataset_base, split_name, 'images', file)
+            shutil.copy2(src_img, dst_img)
+
+            # Copy corresponding label
+            label_file = os.path.splitext(file)[0] + '.txt'
+            src_label = os.path.join(root_labels, label_file)
+            if os.path.exists(src_label):
+                dst_label = os.path.join(dataset_base, split_name, 'labels', label_file)
+                shutil.copy2(src_label, dst_label)
+
+    # Copy files to respective directories
+    copy_files(train, 'train')
+    copy_files(val, 'val')
+    copy_files(test, 'test')
+
+    print(f"Dataset successfully split into: Train ({len(train)}), Val ({len(val)}), Test ({len(test)})")
+    return True
 
 if __name__ == "__main__":
     CONFIG = {
