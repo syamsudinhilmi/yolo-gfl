@@ -219,7 +219,7 @@ def evaluate_model(model_path: str, data_path: str, project_name: str, run_name:
         save_json=True,
         project=project_name,
         name=run_name,
-        split='test',  # Use test split for evaluation
+        # split='test',  # Use test split for evaluation
     )
     ultralytics_eval_time = time.time() - start_time
     print(f"Ultralytics evaluation completed in {ultralytics_eval_time:.2f} seconds")
