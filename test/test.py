@@ -8,10 +8,11 @@ from tqdm import tqdm
 from ultralytics import YOLO
 
 
-def calculate_real_world_performance(model, test_images_dir, conf_threshold=0.25, warmup_images=5):
+def calculate_real_world_performance(model, test_images_dir, conf_threshold=0.25, warmup_images=5, save_inference=True,
+                                     output_dir="runs/inference_output"):
     """
     Calculate real-world inference time and FPS using actual image loading and processing
-    similar to data_test.py approach
+    similar to data_test.py approach, with option to save inference results
     """
     print(f"Calculating real-world performance metrics...")
 
@@ -24,6 +25,13 @@ def calculate_real_world_performance(model, test_images_dir, conf_threshold=0.25
         return 0, 0, []
 
     print(f"Found {len(image_files)} test images")
+
+    # Create output directory for this model if saving inference results
+    model_name = getattr(model, 'model_name', 'unknown_model')
+    if save_inference:
+        model_output_dir = os.path.join(output_dir, model_name)
+        os.makedirs(model_output_dir, exist_ok=True)
+        print(f"Inference results will be saved to: {model_output_dir}")
 
     # Warmup with first few images
     print("Warming up model...")
@@ -39,6 +47,7 @@ def calculate_real_world_performance(model, test_images_dir, conf_threshold=0.25
     # Measure inference times for all images
     inference_times = []
     processed_images = 0
+    saved_images = 0
 
     print("Measuring inference performance...")
     for image_file in tqdm(image_files, desc="Processing images"):
@@ -49,11 +58,26 @@ def calculate_real_world_performance(model, test_images_dir, conf_threshold=0.25
             if image is not None:
                 # Measure pure inference time (like real-world scenario)
                 start_time = time.time()
-                _ = model(image, conf=conf_threshold, verbose=False)
+                results = model(image, conf=conf_threshold, verbose=False)
                 inference_time = time.time() - start_time
 
                 inference_times.append(inference_time)
                 processed_images += 1
+
+                # Save inference result if enabled
+                if save_inference and len(results) > 0:
+                    try:
+                        # Use YOLO's built-in plotting functionality
+                        annotated_image = results[0].plot()
+
+                        # Save annotated image
+                        output_path = os.path.join(model_output_dir, f"result_{image_file}")
+                        cv2.imwrite(output_path, annotated_image)
+                        saved_images += 1
+
+                    except Exception as e:
+                        print(f"Warning: Could not save inference result for {image_file}: {str(e)}")
+
         except Exception as e:
             print(f"Error processing {image_file}: {str(e)}")
 
@@ -68,8 +92,106 @@ def calculate_real_world_performance(model, test_images_dir, conf_threshold=0.25
     print(f"  Processed {processed_images} images")
     print(f"  Average inference time: {avg_inference_time * 1000:.2f} ms")
     print(f"  FPS: {fps:.2f}")
+    if save_inference:
+        print(f"  Saved {saved_images} inference results to {model_output_dir}")
 
     return avg_inference_time, fps, inference_times
+
+
+def save_inference_summary(results, output_dir="runs/inference_output"):
+    """
+    Save a summary of inference results including detection statistics
+    """
+    summary_path = os.path.join(output_dir, "inference_summary.txt")
+
+    with open(summary_path, 'w') as f:
+        f.write("INFERENCE RESULTS SUMMARY\n")
+        f.write("=" * 50 + "\n\n")
+
+        for result in results:
+            f.write(f"Model: {result['model']}\n")
+            f.write(f"  - Images processed: {result['num_test_images']}\n")
+            f.write(f"  - Average inference time: {result['avg_inference_time'] * 1000:.2f} ms\n")
+            f.write(f"  - FPS: {result['fps']:.2f}\n")
+            f.write(f"  - Model size: {result['model_size_mb']:.2f} MB\n")
+            f.write(f"  - Inference results saved to: runs/inference_output/{result['model']}/\n")
+            f.write("\n")
+
+        f.write(f"Generated on: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+
+    print(f"Inference summary saved to: {summary_path}")
+
+
+def create_inference_comparison_grid(results, output_dir="runs/inference_output", max_images=6):
+    """
+    Create a comparison grid showing inference results from different models on the same images
+    """
+    print("Creating inference comparison grid...")
+
+    # Find common images across all models
+    all_model_dirs = []
+    for result in results:
+        model_dir = os.path.join(output_dir, result['model'])
+        if os.path.exists(model_dir):
+            all_model_dirs.append((result['model'], model_dir))
+
+    if len(all_model_dirs) < 2:
+        print("Need at least 2 models with inference results to create comparison grid")
+        return
+
+    # Get common images (images that exist in all model directories)
+    common_images = None
+    for model_name, model_dir in all_model_dirs:
+        model_images = set([f for f in os.listdir(model_dir)
+                            if f.lower().endswith(('.jpg', '.jpeg', '.png'))])
+        if common_images is None:
+            common_images = model_images
+        else:
+            common_images = common_images.intersection(model_images)
+
+    if not common_images:
+        print("No common images found across all models")
+        return
+
+    # Select subset of images for comparison
+    selected_images = list(common_images)[:max_images]
+    num_models = len(all_model_dirs)
+    num_images = len(selected_images)
+
+    # Create comparison grid
+    fig, axes = plt.subplots(num_images, num_models, figsize=(5 * num_models, 5 * num_images))
+
+    # Handle single row case
+    if num_images == 1:
+        axes = axes.reshape(1, -1)
+    elif num_models == 1:
+        axes = axes.reshape(-1, 1)
+
+    for img_idx, image_name in enumerate(selected_images):
+        for model_idx, (model_name, model_dir) in enumerate(all_model_dirs):
+            try:
+                image_path = os.path.join(model_dir, image_name)
+                image = cv2.imread(image_path)
+                image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+                ax = axes[img_idx, model_idx] if num_images > 1 else axes[model_idx]
+                ax.imshow(image_rgb)
+                ax.set_title(f"{model_name}\n{image_name}", fontsize=10)
+                ax.axis('off')
+
+            except Exception as e:
+                print(f"Error loading {image_name} for {model_name}: {str(e)}")
+                ax = axes[img_idx, model_idx] if num_images > 1 else axes[model_idx]
+                ax.text(0.5, 0.5, 'Error loading\nimage',
+                        horizontalalignment='center', verticalalignment='center')
+                ax.set_title(f"{model_name}\n{image_name}", fontsize=10)
+
+    plt.tight_layout()
+    comparison_path = os.path.join(output_dir, 'model_comparison_grid.png')
+    plt.savefig(comparison_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+    print(f"Inference comparison grid saved to: {comparison_path}")
 
 
 def visualize_performance_metrics(results, output_dir="runs/performance_analysis"):
@@ -194,11 +316,14 @@ def visualize_performance_metrics(results, output_dir="runs/performance_analysis
 
 
 def evaluate_model(model_path: str, data_path: str, project_name: str, run_name: str, test_images_dir: str):
-    """Enhanced evaluation function with real-world performance metrics"""
+    """Enhanced evaluation function with real-world performance metrics and inference saving"""
     print(f"\nEvaluating Model: {run_name}")
 
     # Load model
     model = YOLO(model_path, task='detect')
+    # Add model name attribute for inference saving
+    model.model_name = run_name
+
     print("Model Info:")
     print(model.info())
 
@@ -219,15 +344,15 @@ def evaluate_model(model_path: str, data_path: str, project_name: str, run_name:
         save_json=True,
         project=project_name,
         name=run_name,
-        # split='test',  # Use test split for evaluation
+        split='test',  # Use test split for evaluation
     )
     ultralytics_eval_time = time.time() - start_time
     print(f"Ultralytics evaluation completed in {ultralytics_eval_time:.2f} seconds")
 
-    print(f"\nReal-world Performance Analysis")
-    # Real-world performance measurement
+    print(f"\nReal-world Performance Analysis with Inference Saving")
+    # Real-world performance measurement with inference result saving
     avg_inference_time, fps, inference_times = calculate_real_world_performance(
-        model, test_images_dir, conf_threshold=0.25
+        model, test_images_dir, conf_threshold=0.25, save_inference=True
     )
 
     # Calculate statistics
@@ -330,9 +455,21 @@ def main():
         print(f"\nGenerating performance visualizations...")
         visualize_performance_metrics(all_results)
 
+        # Save inference summary and create comparison grid
+        print(f"\nSaving inference results summary...")
+        save_inference_summary(all_results)
+
+        print(f"\nCreating inference comparison grid...")
+        create_inference_comparison_grid(all_results)
+
         print("EVALUATION COMPLETE!")
+        print(f"Check the following directories for results:")
+        print(f"  - Performance analysis: runs/performance_analysis/")
+        print(f"  - Inference outputs: runs/inference_output/")
+        print(f"  - Ultralytics evaluation: runs/evaluation/")
     else:
         print("No models were successfully evaluated.")
+
 
 if __name__ == "__main__":
     main()
