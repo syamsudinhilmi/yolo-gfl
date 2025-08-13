@@ -1,0 +1,11 @@
+ultralytics
+onnx
+onnxruntime-gpu
+onnxslim
+opencv-python
+albumentations
+pandas
+matplotlib
+seaborn
+plotly
+streamlit
